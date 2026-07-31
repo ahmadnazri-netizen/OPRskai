@@ -1,0 +1,1308 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OPR Pro - Advanced One Page Report Builder</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --theme-color: #bf8254; 
+            --bg-main: #0f172a; /* Slate 900 for modern premium editing environment */
+            --sidebar-bg: #1e293b; /* Slate 800 */
+            --border: #334155; /* Slate 700 */
+        }
+
+        /* Set base styling */
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            margin: 0;
+            background-color: var(--bg-main);
+            color: #f1f5f9;
+        }
+
+        /* ===== A4 PAGE SCALING SYSTEM ===== */
+        #a4-wrapper {
+            transition: transform 0.2s ease-out;
+            transform-origin: top center;
+        }
+
+        #a4-page {
+            width: 210mm;
+            height: 297mm;
+            background: white;
+            padding: 12mm 10mm 10mm 10mm;
+            display: flex;
+            flex-direction: column;
+            color: #1e293b;
+            position: relative;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            box-sizing: border-box;
+            /* Force colors to print */
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        /* Title Stylings */
+        .title-text-main h1 { 
+            margin: 0; 
+            font-size: 32pt; 
+            font-weight: 900; 
+            color: #1e293b; 
+            line-height: 0.8; 
+            letter-spacing: -1px;
+        }
+        .title-text-main span { 
+            font-family: 'Georgia', serif;
+            font-style: italic;
+            font-size: 34pt; 
+            color: #b91c1c; 
+            margin-left: 2px;
+            font-weight: bold;
+        }
+
+        /* Banner & Box Colors Bound to Theme Variables */
+        .school-banner { 
+            background: var(--theme-color) !important; 
+            color: white !important; 
+            padding: 6px 15px; 
+            font-size: 11pt; 
+            font-weight: 700; 
+            text-align: center; 
+            margin-bottom: 12px; 
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-radius: 4px;
+        }
+
+        .top-grid { 
+            display: grid; 
+            grid-template-columns: 1.1fr 0.9fr; 
+            gap: 12px; 
+            margin-bottom: 12px; 
+            height: 240px; 
+        }
+
+        .activity-box { 
+            background: var(--theme-color) !important; 
+            color: white !important; 
+            padding: 24px; 
+            border-radius: 8px;
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center; 
+            box-shadow: inset 0 0 80px rgba(0,0,0,0.1);
+        }
+        .activity-box h2 { 
+            font-size: 18pt; 
+            font-weight: 900; 
+            margin: 0 0 10px 0; 
+            text-transform: uppercase; 
+            line-height: 1.2; 
+            color: white !important; 
+            word-wrap: break-word;
+        }
+        .activity-box p { 
+            margin: 3px 0; 
+            font-size: 10pt; 
+            font-weight: 600; 
+            color: rgba(255, 255, 255, 0.9) !important; 
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Image Containers with custom zoom/offset styling capabilities */
+        .img-container { 
+            background: #f8fafc; 
+            overflow: hidden; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            border: 2px dashed #cbd5e1; 
+            border-radius: 8px;
+            position: relative; 
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .img-container:hover {
+            border-color: var(--theme-color);
+            background: #f1f5f9;
+        }
+        .img-container img { 
+            width: 100%; 
+            height: 100%; 
+            object-fit: cover; 
+            pointer-events: none; 
+            display: none; 
+            transform-origin: center center;
+        }
+        .img-container.has-img {
+            border: 1px solid #e2e8f0;
+        }
+        .img-container.has-img img { 
+            display: block; 
+        }
+        .img-container::before { 
+            content: attr(data-label); 
+            font-size: 8px; 
+            font-weight: bold;
+            letter-spacing: 1px;
+            color: #94a3b8; 
+            position: absolute; 
+            top: 6px; 
+            left: 8px; 
+            background: rgba(255, 255, 255, 0.85);
+            padding: 2px 6px;
+            border-radius: 4px;
+            z-index: 10;
+        }
+        .img-container.has-img::before { 
+            background: rgba(15, 23, 42, 0.6);
+            color: #ffffff;
+        }
+
+        .panorama-section { 
+            width: 100%; 
+            height: 180px; 
+            margin-bottom: 12px; 
+            flex-shrink: 0; 
+        }
+
+        /* Bottom Grid Layout */
+        .bottom-layout { 
+            display: grid; 
+            grid-template-columns: 1.1fr 1fr 0.9fr; 
+            gap: 14px; 
+            flex: 1; 
+            overflow: hidden; 
+        }
+        .content-col { 
+            display: flex; 
+            flex-direction: column; 
+        }
+        .content-col h4 { 
+            font-size: 11pt; 
+            font-weight: 800; 
+            margin: 0 0 6px 0; 
+            color: #1e293b; 
+            text-transform: uppercase; 
+            border-left: 4px solid var(--theme-color); 
+            padding-left: 8px;
+            letter-spacing: 0.3px;
+        }
+        .content-col p { 
+            font-size: 9.5pt; 
+            margin: 0 0 12px 0; 
+            line-height: 1.35; 
+            color: #475569;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+        }
+        .content-col ul { 
+            padding-left: 14px; 
+            margin: 0 0 12px 0;
+            list-style-type: square;
+        }
+        .content-col li {
+            font-size: 9.5pt;
+            line-height: 1.35;
+            color: #475569;
+            margin-bottom: 4px;
+        }
+
+        .optional-sec { 
+            display: none; 
+            margin-bottom: 10px; 
+        } 
+
+        .side-images { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 12px; 
+        }
+        .side-images .img-container { 
+            height: 135px; 
+        }
+
+        /* Footer */
+        .report-footer { 
+            margin-top: 14px; 
+            border-top: 1px solid #e2e8f0; 
+            display: flex; 
+            justify-content: space-between; 
+            font-size: 8.5pt; 
+            color: white !important; 
+            background: #1e293b !important; 
+            padding: 8px 15px; 
+            margin-left: -10mm; 
+            margin-right: -10mm; 
+            margin-bottom: -10mm; 
+            flex-shrink: 0;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        /* Interaction States */
+        .drag-over { 
+            background: #eff6ff !important; 
+            border: 2px dashed var(--primary) !important; 
+            transform: scale(1.02);
+        }
+
+        /* Custom Scrollbar for modern side section */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+
+        /* ===== CETAK & PEMBETULAN REKA BENTUK CETAKAN ===== */
+        @media print {
+            @page {
+                size: A4 portrait;
+                margin: 0 !important; /* Membuang margin default pelayar */
+            }
+            
+            html, body { 
+                background: white !important; 
+                color: #000 !important;
+                width: 210mm !important;
+                height: 297mm !important;
+                display: block !important;
+                overflow: visible !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
+            /* Sembunyikan semua bar navigasi, sidebar dan modal dialog */
+            #editor-sidebar, 
+            header, 
+            #toast-notif, 
+            #confirm-modal { 
+                display: none !important; 
+            }
+
+            /* Nyahaktifkan layout flexbox pada bekas luar untuk mengelakkan pemotongan */
+            main {
+                display: block !important;
+                width: 100% !important;
+                height: auto !important;
+                background: white !important;
+                overflow: visible !important;
+                position: static !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+
+            #preview-pane { 
+                padding: 0 !important; 
+                margin: 0 !important;
+                background: white !important; 
+                overflow: visible !important; 
+                display: block !important;
+                width: 210mm !important;
+                height: 297mm !important;
+            }
+
+            #a4-wrapper {
+                transform: none !important; /* Matikan sebarang zoom kawalan semasa mencetak */
+                margin: 0 !important;
+                padding: 0 !important;
+                width: 210mm !important;
+                height: 297mm !important;
+                display: block !important;
+            }
+
+            #a4-page { 
+                box-shadow: none !important; 
+                margin: 0 !important; 
+                border: none !important;
+                width: 210mm !important;
+                height: 297mm !important;
+                position: absolute !important;
+                top: 0 !important;
+                left: 0 !important;
+                box-sizing: border-box !important;
+                -webkit-print-color-adjust: exact !important; 
+                print-color-adjust: exact !important;
+            }
+
+            .school-banner, .activity-box, .report-footer {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+        }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden">
+
+<!-- ===== SIDEBAR EDITOR ===== -->
+<aside id="editor-sidebar" class="w-[420px] bg-slate-800 border-r border-slate-700 flex flex-col z-50 shrink-0">
+    <!-- Header -->
+    <div class="p-4 bg-slate-900 border-b border-slate-700 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+            <div class="p-2 bg-blue-600 rounded-lg text-white">
+                <i data-lucide="file-text" class="w-5 h-5"></i>
+            </div>
+            <div>
+                <h1 class="font-extrabold text-md tracking-tight text-white leading-none">OPR Pro</h1>
+                <span class="text-xs text-slate-400">One Page Report Builder</span>
+            </div>
+        </div>
+        <div class="flex items-center gap-1.5">
+            <button onclick="loadDemoData()" class="px-2.5 py-1.5 text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white rounded transition" title="Isi data contoh untuk melihat demo">
+                Contoh Data
+            </button>
+        </div>
+    </div>
+
+    <!-- Collapsible Edit Panels Container -->
+    <div class="flex-1 overflow-y-auto p-4 space-y-4">
+
+        <!-- Section 1: Tema & Identiti -->
+        <div class="bg-slate-850 border border-slate-700 rounded-xl overflow-hidden">
+            <button onclick="toggleSection('sec-identity')" class="w-full p-3.5 bg-slate-900 flex justify-between items-center text-left hover:bg-slate-750 transition">
+                <div class="flex items-center gap-2 font-bold text-slate-200 text-sm">
+                    <i data-lucide="palette" class="w-4 h-4 text-blue-400"></i>
+                    <span>1. Tema & Logo Agensi</span>
+                </div>
+                <i data-lucide="chevron-down" id="icon-sec-identity" class="w-4 h-4 text-slate-400 transition-transform"></i>
+            </button>
+            <div id="sec-identity" class="p-4 space-y-3.5">
+                <!-- Color Theme Choice -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 mb-1.5">Preset Warna Tema</label>
+                    <div class="grid grid-cols-5 gap-2 mb-2">
+                        <button onclick="updateColor('#bf8254')" class="h-8 rounded bg-[#bf8254] border-2 border-slate-600 hover:border-white transition" title="Default Earth"></button>
+                        <button onclick="updateColor('#800000')" class="h-8 rounded bg-[#800000] border-2 border-slate-600 hover:border-white transition" title="KPM Korporat"></button>
+                        <button onclick="updateColor('#1e3a8a')" class="h-8 rounded bg-[#1e3a8a] border-2 border-slate-600 hover:border-white transition" title="Royal Blue"></button>
+                        <button onclick="updateColor('#047857')" class="h-8 rounded bg-[#047857] border-2 border-slate-600 hover:border-white transition" title="Emerald"></button>
+                        <button onclick="updateColor('#6d28d9')" class="h-8 rounded bg-[#6d28d9] border-2 border-slate-600 hover:border-white transition" title="Smart Purple"></button>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <input type="color" id="inColor" oninput="updateColor(this.value)" value="#bf8254" class="w-12 h-8 rounded border border-slate-650 bg-transparent cursor-pointer p-0">
+                        <span class="text-xs text-slate-400">Pilih warna tersuai (Custom)</span>
+                    </div>
+                </div>
+
+                <!-- Logo Uploads -->
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 mb-1">Logo 1 (Kiri)</label>
+                        <input type="file" accept="image/*" onchange="loadImg(event, 'pLogo1')" class="block w-full text-xs text-slate-400 file:mr-2 file:py-1.5 file:px-2.5 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-slate-700 file:text-white hover:file:bg-slate-600 cursor-pointer">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 mb-1">Logo 2 (Kanan)</label>
+                        <input type="file" accept="image/*" onchange="loadImg(event, 'pLogo2')" class="block w-full text-xs text-slate-400 file:mr-2 file:py-1.5 file:px-2.5 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-slate-700 file:text-white hover:file:bg-slate-600 cursor-pointer">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 2: Maklumat Asas -->
+        <div class="bg-slate-850 border border-slate-700 rounded-xl overflow-hidden">
+            <button onclick="toggleSection('sec-basic')" class="w-full p-3.5 bg-slate-900 flex justify-between items-center text-left hover:bg-slate-750 transition">
+                <div class="flex items-center gap-2 font-bold text-slate-200 text-sm">
+                    <i data-lucide="info" class="w-4 h-4 text-emerald-400"></i>
+                    <span>2. Maklumat Asas</span>
+                </div>
+                <i data-lucide="chevron-down" id="icon-sec-basic" class="w-4 h-4 text-slate-400 transition-transform"></i>
+            </button>
+            <div id="sec-basic" class="p-4 space-y-3.5 hidden">
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 mb-1">Nama Sekolah / Agensi</label>
+                    <input type="text" id="inSchool" oninput="sync()" placeholder="SJKC / SMK / SK Contoh..." class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm text-white focus:border-blue-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 mb-1">Sesi Akademik / Tahun</label>
+                    <input type="text" id="inSession" oninput="sync()" placeholder="Sesi 2026/2027" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm text-white focus:border-blue-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 mb-1">Tajuk Program / Aktiviti</label>
+                    <textarea id="inTitle" rows="2" oninput="sync()" placeholder="PROGRAM TRANSISI TAHUN 1 & PROGRAM PENYAYANG" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm text-white focus:border-blue-500 focus:outline-none resize-none"></textarea>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 mb-1">Tarikh Pelaksanaan</label>
+                        <input type="text" id="inDate" oninput="sync()" placeholder="10 - 20 Mac 2026" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm text-white focus:border-blue-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 mb-1">Tempat / Platform</label>
+                        <input type="text" id="inPlace" oninput="sync()" placeholder="Dewan Terbuka" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm text-white focus:border-blue-500 focus:outline-none">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 3: Laporan Kandungan -->
+        <div class="bg-slate-850 border border-slate-700 rounded-xl overflow-hidden">
+            <button onclick="toggleSection('sec-content')" class="w-full p-3.5 bg-slate-900 flex justify-between items-center text-left hover:bg-slate-750 transition">
+                <div class="flex items-center gap-2 font-bold text-slate-200 text-sm">
+                    <i data-lucide="align-left" class="w-4 h-4 text-amber-400"></i>
+                    <span>3. Sasaran, Anjuran & Objektif</span>
+                </div>
+                <i data-lucide="chevron-down" id="icon-sec-content" class="w-4 h-4 text-slate-400 transition-transform"></i>
+            </button>
+            <div id="sec-content" class="p-4 space-y-3.5 hidden">
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 mb-1">Kumpulan Sasaran</label>
+                    <textarea id="inTarget" oninput="sync()" rows="2" placeholder="Semua murid Tahun 1 & guru kelas." class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm text-white focus:border-blue-500 focus:outline-none resize-none"></textarea>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 mb-1">Pihak Anjuran / Pengelola</label>
+                    <textarea id="inOrganiser" oninput="sync()" rows="2" placeholder="Unit Bimbingan & Kaunseling serta Panitia BM." class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm text-white focus:border-blue-500 focus:outline-none resize-none"></textarea>
+                </div>
+                <div>
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="block text-xs font-bold text-slate-400">Objektif Program</label>
+                        <span class="text-[10px] text-slate-500 font-medium">Satu baris = Satu bullet</span>
+                    </div>
+                    <textarea id="inObj" rows="4" oninput="sync()" placeholder="Membantu murid menyesuaikan diri dengan rakan baru.&#10;Meningkatkan motivasi dan minat murid untuk belajar.&#10;Merapatkan hubungan silaturahim antara guru dan murid." class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm text-white focus:border-blue-500 focus:outline-none"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 4: Seksyen Tambahan -->
+        <div class="bg-slate-850 border border-slate-700 rounded-xl overflow-hidden">
+            <button onclick="toggleSection('sec-optional')" class="w-full p-3.5 bg-slate-900 flex justify-between items-center text-left hover:bg-slate-750 transition">
+                <div class="flex items-center gap-2 font-bold text-slate-200 text-sm">
+                    <i data-lucide="plus-circle" class="w-4 h-4 text-purple-400"></i>
+                    <span>4. Seksyen Tambahan (Auto-hide)</span>
+                </div>
+                <i data-lucide="chevron-down" id="icon-sec-optional" class="w-4 h-4 text-slate-400 transition-transform"></i>
+            </button>
+            <div id="sec-optional" class="p-4 space-y-3.5 hidden">
+                <p class="text-[11px] text-slate-400 italic">Seksyen di bawah hanya akan muncul pada dokumen A4 sekiranya ada teks yang ditaip.</p>
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 mb-1">Impak Program</label>
+                    <textarea id="inImpact" rows="2" oninput="sync()" placeholder="Murid lebih bersemangat hadir ke sekolah." class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm text-white focus:border-blue-500 focus:outline-none resize-none"></textarea>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 mb-1">Kekangan & Isu</label>
+                    <textarea id="inConstraint" rows="2" oninput="sync()" placeholder="Kekurangan masa untuk aktiviti luar." class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm text-white focus:border-blue-500 focus:outline-none resize-none"></textarea>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 mb-1">Catatan Tambahan</label>
+                    <textarea id="inRemarks" rows="2" oninput="sync()" placeholder="Kerjasama ibu bapa amat cemerlang." class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm text-white focus:border-blue-500 focus:outline-none resize-none"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 5: Galeri & Susun Atur Foto -->
+        <div class="bg-slate-850 border border-slate-700 rounded-xl overflow-hidden">
+            <button onclick="toggleSection('sec-photos')" class="w-full p-3.5 bg-slate-900 flex justify-between items-center text-left hover:bg-slate-750 transition">
+                <div class="flex items-center gap-2 font-bold text-slate-200 text-sm">
+                    <i data-lucide="image" class="w-4 h-4 text-cyan-400"></i>
+                    <span>5. Pengurusan Foto & Zoom</span>
+                </div>
+                <i data-lucide="chevron-down" id="icon-sec-photos" class="w-4 h-4 text-slate-400 transition-transform"></i>
+            </button>
+            <div id="sec-photos" class="p-4 space-y-4 hidden">
+                <p class="text-[11px] text-slate-400 italic">Muat naik gambar di sini. Laraskan 'Zoom' dan 'Kedudukan (Y)' untuk memotong bahagian terbaik.</p>
+                
+                <!-- Slot 1 Control -->
+                <div class="p-3 bg-slate-900 rounded border border-slate-700 space-y-2">
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs font-bold text-white">Slot 1 (Utama Atas)</span>
+                        <button onclick="removeSlotImage('pImg1')" class="text-[10px] text-red-400 hover:underline">Padam</button>
+                    </div>
+                    <input type="file" accept="image/*" onchange="loadImg(event, 'pImg1')" class="block w-full text-xs text-slate-400 file:py-1 file:px-2 file:rounded file:bg-slate-700 file:text-white file:border-0 hover:file:bg-slate-650 cursor-pointer">
+                    <div class="grid grid-cols-2 gap-2 pt-1">
+                        <div>
+                            <label class="text-[10px] text-slate-400 font-bold block mb-1">Zoom: <span id="valZoom1">100</span>%</label>
+                            <input type="range" min="100" max="300" value="100" oninput="adjustImage('pImg1', 'zoom', this.value, 'valZoom1')" class="w-full accent-blue-500">
+                        </div>
+                        <div>
+                            <label class="text-[10px] text-slate-400 font-bold block mb-1">Kedudukan Y: <span id="valY1">0</span>px</label>
+                            <input type="range" min="-150" max="150" value="0" oninput="adjustImage('pImg1', 'offsetY', this.value, 'valY1')" class="w-full accent-blue-500">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Slot 2 Control -->
+                <div class="p-3 bg-slate-900 rounded border border-slate-700 space-y-2">
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs font-bold text-white">Slot 2 (Panorama Tengah)</span>
+                        <button onclick="removeSlotImage('pImg2')" class="text-[10px] text-red-400 hover:underline">Padam</button>
+                    </div>
+                    <input type="file" accept="image/*" onchange="loadImg(event, 'pImg2')" class="block w-full text-xs text-slate-400 file:py-1 file:px-2 file:rounded file:bg-slate-700 file:text-white file:border-0 hover:file:bg-slate-650 cursor-pointer">
+                    <div class="grid grid-cols-2 gap-2 pt-1">
+                        <div>
+                            <label class="text-[10px] text-slate-400 font-bold block mb-1">Zoom: <span id="valZoom2">100</span>%</label>
+                            <input type="range" min="100" max="300" value="100" oninput="adjustImage('pImg2', 'zoom', this.value, 'valZoom2')" class="w-full accent-blue-500">
+                        </div>
+                        <div>
+                            <label class="text-[10px] text-slate-400 font-bold block mb-1">Kedudukan Y: <span id="valY2">0</span>px</label>
+                            <input type="range" min="-150" max="150" value="0" oninput="adjustImage('pImg2', 'offsetY', this.value, 'valY2')" class="w-full accent-blue-500">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Slot 3 Control -->
+                <div class="p-3 bg-slate-900 rounded border border-slate-700 space-y-2">
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs font-bold text-white">Slot 3 (Kandungan Bawah)</span>
+                        <button onclick="removeSlotImage('pImg3')" class="text-[10px] text-red-400 hover:underline">Padam</button>
+                    </div>
+                    <input type="file" accept="image/*" onchange="loadImg(event, 'pImg3')" class="block w-full text-xs text-slate-400 file:py-1 file:px-2 file:rounded file:bg-slate-700 file:text-white file:border-0 hover:file:bg-slate-650 cursor-pointer">
+                    <div class="grid grid-cols-2 gap-2 pt-1">
+                        <div>
+                            <label class="text-[10px] text-slate-400 font-bold block mb-1">Zoom: <span id="valZoom3">100</span>%</label>
+                            <input type="range" min="100" max="300" value="100" oninput="adjustImage('pImg3', 'zoom', this.value, 'valZoom3')" class="w-full accent-blue-500">
+                        </div>
+                        <div>
+                            <label class="text-[10px] text-slate-400 font-bold block mb-1">Kedudukan Y: <span id="valY3">0</span>px</label>
+                            <input type="range" min="-150" max="150" value="0" oninput="adjustImage('pImg3', 'offsetY', this.value, 'valY3')" class="w-full accent-blue-500">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Slot 4 Control -->
+                <div class="p-3 bg-slate-900 rounded border border-slate-700 space-y-2">
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs font-bold text-white">Slot 4 (Sisi Atas)</span>
+                        <button onclick="removeSlotImage('pImg4')" class="text-[10px] text-red-400 hover:underline">Padam</button>
+                    </div>
+                    <input type="file" accept="image/*" onchange="loadImg(event, 'pImg4')" class="block w-full text-xs text-slate-400 file:py-1 file:px-2 file:rounded file:bg-slate-700 file:text-white file:border-0 hover:file:bg-slate-650 cursor-pointer">
+                    <div class="grid grid-cols-2 gap-2 pt-1">
+                        <div>
+                            <label class="text-[10px] text-slate-400 font-bold block mb-1">Zoom: <span id="valZoom4">100</span>%</label>
+                            <input type="range" min="100" max="300" value="100" oninput="adjustImage('pImg4', 'zoom', this.value, 'valZoom4')" class="w-full accent-blue-500">
+                        </div>
+                        <div>
+                            <label class="text-[10px] text-slate-400 font-bold block mb-1">Kedudukan Y: <span id="valY4">0</span>px</label>
+                            <input type="range" min="-150" max="150" value="0" oninput="adjustImage('pImg4', 'offsetY', this.value, 'valY4')" class="w-full accent-blue-500">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Slot 5 Control -->
+                <div class="p-3 bg-slate-900 rounded border border-slate-700 space-y-2">
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs font-bold text-white">Slot 5 (Sisi Bawah)</span>
+                        <button onclick="removeSlotImage('pImg5')" class="text-[10px] text-red-400 hover:underline">Padam</button>
+                    </div>
+                    <input type="file" accept="image/*" onchange="loadImg(event, 'pImg5')" class="block w-full text-xs text-slate-400 file:py-1 file:px-2 file:rounded file:bg-slate-700 file:text-white file:border-0 hover:file:bg-slate-650 cursor-pointer">
+                    <div class="grid grid-cols-2 gap-2 pt-1">
+                        <div>
+                            <label class="text-[10px] text-slate-400 font-bold block mb-1">Zoom: <span id="valZoom5">100</span>%</label>
+                            <input type="range" min="100" max="300" value="100" oninput="adjustImage('pImg5', 'zoom', this.value, 'valZoom5')" class="w-full accent-blue-500">
+                        </div>
+                        <div>
+                            <label class="text-[10px] text-slate-400 font-bold block mb-1">Kedudukan Y: <span id="valY5">0</span>px</label>
+                            <input type="range" min="-150" max="150" value="0" oninput="adjustImage('pImg5', 'offsetY', this.value, 'valY5')" class="w-full accent-blue-500">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 6: Penutup & Pengesahan -->
+        <div class="bg-slate-850 border border-slate-700 rounded-xl overflow-hidden">
+            <button onclick="toggleSection('sec-validation')" class="w-full p-3.5 bg-slate-900 flex justify-between items-center text-left hover:bg-slate-750 transition">
+                <div class="flex items-center gap-2 font-bold text-slate-200 text-sm">
+                    <i data-lucide="signature" class="w-4 h-4 text-rose-400"></i>
+                    <span>6. Pengesahan & Kod Laporan</span>
+                </div>
+                <i data-lucide="chevron-down" id="icon-sec-validation" class="w-4 h-4 text-slate-400 transition-transform"></i>
+            </button>
+            <div id="sec-validation" class="p-4 space-y-3.5 hidden">
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 mb-1">Nama Penyedia Laporan</label>
+                    <input type="text" id="inTeacher" oninput="sync()" placeholder="Cikgu Fatimah binti Ahmad" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm text-white focus:border-blue-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 mb-1">Kod Rujukan / Bilangan Laporan</label>
+                    <input type="text" id="inBil" oninput="sync()" placeholder="OPR BIL. 2/2026" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm text-white focus:border-blue-500 focus:outline-none">
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 7: Sandaran fail template -->
+        <div class="bg-slate-850 border border-slate-700 rounded-xl overflow-hidden">
+            <button onclick="toggleSection('sec-backup')" class="w-full p-3.5 bg-slate-900 flex justify-between items-center text-left hover:bg-slate-750 transition">
+                <div class="flex items-center gap-2 font-bold text-slate-200 text-sm">
+                    <i data-lucide="database" class="w-4 h-4 text-blue-400"></i>
+                    <span>7. Templat Fail & Sandaran</span>
+                </div>
+                <i data-lucide="chevron-down" id="icon-sec-backup" class="w-4 h-4 text-slate-400 transition-transform"></i>
+            </button>
+            <div id="sec-backup" class="p-4 space-y-3.5 hidden">
+                <p class="text-[11px] text-slate-400">Anda boleh mengeksport laporan ini sebagai fail projek untuk suntingan semula pada masa akan datang.</p>
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="exportTemplate()" class="flex items-center justify-center gap-1.5 py-2 px-3 bg-slate-700 hover:bg-slate-600 text-white rounded text-xs font-bold transition">
+                        <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                        Eksport Fail .OPR
+                    </button>
+                    <label class="flex items-center justify-center gap-1.5 py-2 px-3 bg-slate-700 hover:bg-slate-600 text-white rounded text-xs font-bold cursor-pointer transition">
+                        <i data-lucide="upload" class="w-3.5 h-3.5"></i>
+                        Import Fail .OPR
+                        <input type="file" accept=".opr" onchange="importTemplate(event)" class="hidden">
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar Footer Buttons -->
+    <div class="p-4 bg-slate-900 border-t border-slate-700 space-y-2">
+        <button class="w-full bg-blue-600 hover:bg-blue-500 text-white py-3 px-4 rounded-lg font-bold flex items-center justify-center gap-2 shadow-lg transition" onclick="triggerPrint()">
+            <i data-lucide="printer" class="w-5 h-5"></i> Cetak / Simpan PDF
+        </button>
+        <button class="w-full bg-slate-800 hover:bg-red-950 hover:text-red-300 text-slate-400 py-2 px-4 rounded-lg font-semibold text-xs flex items-center justify-center gap-1.5 transition" onclick="openResetModal()">
+            <i data-lucide="trash-2" class="w-4 h-4"></i> Padam & Set Semula Semua
+        </button>
+    </div>
+</aside>
+
+<!-- ===== MAIN PREVIEW AREA ===== -->
+<main class="flex-1 flex flex-col min-w-0 bg-slate-950 overflow-hidden relative">
+    
+    <!-- Top Bar Toolbar (Zoom, Info, Quick actions) -->
+    <header class="h-14 bg-slate-900 border-b border-slate-850 px-6 flex items-center justify-between z-10 select-none">
+        <div class="flex items-center gap-3">
+            <span class="text-xs font-semibold text-slate-400 flex items-center gap-1">
+                <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500"></span> 
+                Mod Pratonton (A4)
+            </span>
+            <div class="hidden sm:flex items-center gap-1 text-[11px] text-slate-500">
+                <span>• Seret & Lepas imej terus ke slot untuk menukar fail</span>
+            </div>
+        </div>
+        
+        <!-- Zoom Controller for responsive editing fit -->
+        <div class="flex items-center gap-3">
+            <div class="flex items-center gap-2 bg-slate-850 px-3 py-1.5 rounded-lg border border-slate-700">
+                <i data-lucide="zoom-in" class="w-3.5 h-3.5 text-slate-400"></i>
+                <label class="text-xs font-bold text-slate-300 w-12 text-right" id="zoomLabel">75%</label>
+                <input type="range" min="40" max="110" value="75" id="pageZoom" oninput="scalePreview(this.value)" class="w-24 h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500">
+            </div>
+        </div>
+    </header>
+
+    <!-- Scrollable Sandbox for the A4 page -->
+    <div id="preview-pane" class="flex-1 overflow-y-auto p-12 flex justify-center bg-slate-950">
+        <div id="a4-wrapper" class="origin-top">
+            
+            <!-- THE A4 PAGE (Actual PDF boundaries) -->
+            <div id="a4-page" class="select-none">
+                
+                <!-- Report Header with customizable logos -->
+                <header class="report-header flex justify-between items-start mb-2">
+                    <div class="logo-container flex gap-2">
+                        <!-- Left Logo -->
+                        <div class="logo-slot drop-zone border border-dashed border-slate-300 w-[60px] h-[60px] rounded flex items-center justify-center relative overflow-hidden" id="logoSlot1" data-target="pLogo1">
+                            <img id="pLogo1" src="" class="max-w-full max-h-full object-contain">
+                            <span class="logo-placeholder text-[8px] font-extrabold text-slate-400 tracking-tight text-center px-1">LOGO 1<br>(SEKOLAH)</span>
+                        </div>
+                        <!-- Right Logo -->
+                        <div class="logo-slot drop-zone border border-dashed border-slate-300 w-[60px] h-[60px] rounded flex items-center justify-center relative overflow-hidden" id="logoSlot2" data-target="pLogo2">
+                            <img id="pLogo2" src="" class="max-w-full max-h-full object-contain">
+                            <span class="logo-placeholder text-[8px] font-extrabold text-slate-400 tracking-tight text-center px-1">LOGO 2<br>(PPD/JPN)</span>
+                        </div>
+                    </div>
+                    <!-- Big OPR Brand Title -->
+                    <div class="title-text-main text-right">
+                        <h1>ONE PAGE<span>Report</span></h1>
+                    </div>
+                </header>
+
+                <!-- Banner: School & Sesi Akademik -->
+                <div class="school-banner">
+                    <span id="outSchool">NAMA SEKOLAH / AGENSI ANDA DI SINI</span> | <span id="outSession">SESI AKADEMIK / TAHUN</span>
+                </div>
+
+                <!-- Top Layout: Activity Box and Main Slot 1 Photo -->
+                <div class="top-grid">
+                    <!-- Theme-colorized description box -->
+                    <div class="activity-box">
+                        <h2 id="outTitle">TAJUK AKTIVITI ATAU PROGRAM KHAS SEKOLAH</h2>
+                        <p id="outDate">
+                            <i data-lucide="calendar" class="w-3.5 h-3.5 shrink-0"></i>
+                            <span id="outDateText">Tarikh Program</span>
+                        </p>
+                        <p id="outPlace">
+                            <i data-lucide="map-pin" class="w-3.5 h-3.5 shrink-0"></i>
+                            <span id="outPlaceText">Tempat Pelaksanaan</span>
+                        </p>
+                    </div>
+                    <!-- Photo Slot 1 -->
+                    <div class="img-container drop-zone" id="slot1" data-label="GAMBAR UTAMA AKTIVITI (SLOT 1)" data-target="pImg1">
+                        <img id="pImg1" src="">
+                    </div>
+                </div>
+
+                <!-- Middle Panorama Photo (Slot 2) -->
+                <div class="img-container panorama-section drop-zone" id="slot2" data-label="GAMBAR PANORAMA / KELAS / RAMAI (SLOT 2)" data-target="pImg2">
+                    <img id="pImg2" src="">
+                </div>
+
+                <!-- Bottom Multi-Column Layout -->
+                <div class="bottom-layout">
+                    <!-- Column 1: Sasaran & Objektif -->
+                    <div class="content-col">
+                        <h4>Sasaran</h4>
+                        <p id="outTarget">Murid-murid, guru, dan kakitangan sekolah yang disasarkan.</p>
+                        
+                        <h4>Objektif</h4>
+                        <div id="outObj">
+                            <ul>
+                                <li>Mencapai hasil pembelajaran yang optimum sepanjang aktiviti dijalankan.</li>
+                                <li>Menjalin hubungan erat antara komuniti sekolah serta pihak penganjur.</li>
+                            </ul>
+                        </div>
+
+                        <!-- Dynamic Section 1: Impak -->
+                        <div id="secImpact" class="optional-sec">
+                            <h4>Impak Program</h4>
+                            <p id="outImpact"></p>
+                        </div>
+                        
+                        <!-- Dynamic Section 2: Kekangan -->
+                        <div id="secConstraint" class="optional-sec">
+                            <h4>Kekangan / Isu</h4>
+                            <p id="outConstraint"></p>
+                        </div>
+                    </div>
+
+                    <!-- Column 2: Anjuran, Catatan, & Gambar Slot 3 -->
+                    <div class="content-col">
+                        <h4>Anjuran</h4>
+                        <p id="outOrganiser">Unit Pentadbiran Sekolah.</p>
+
+                        <!-- Dynamic Section 3: Catatan -->
+                        <div id="secRemarks" class="optional-sec">
+                            <h4>Catatan</h4>
+                            <p id="outRemarks"></p>
+                        </div>
+
+                        <!-- Bottom Container Picture (Slot 3) -->
+                        <div class="img-container drop-zone mt-auto" id="slot3" data-label="FOTO AKTIVITI (SLOT 3)" style="min-height: 140px;" data-target="pImg3">
+                            <img id="pImg3" src="">
+                        </div>
+                    </div>
+
+                    <!-- Column 3: Sisi Kanan (Slot 4 & Slot 5) -->
+                    <div class="side-images">
+                        <div class="img-container drop-zone" id="slot4" data-label="SISI ATAS (SLOT 4)" data-target="pImg4">
+                            <img id="pImg4" src="">
+                        </div>
+                        <div class="img-container drop-zone" id="slot5" data-label="SISI BAWAH (SLOT 5)" data-target="pImg5">
+                            <img id="pImg5" src="">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- A4 Footer -->
+                <footer class="report-footer">
+                    <span id="outBil" class="font-extrabold uppercase">OPR BIL. 1</span>
+                    <span>Disediakan oleh: <strong id="outTeacher" class="font-black">NAMA PENYEDIA</strong></span>
+                </footer>
+
+            </div><!-- End of A4 page -->
+            
+        </div>
+    </div>
+</main>
+
+<!-- ===== DIALOG MODALS & NOTIFICATIONS ===== -->
+<!-- Custom Toast Notification -->
+<div id="toast-notif" class="fixed bottom-5 right-5 bg-slate-900 border border-slate-700 text-white px-4 py-3 rounded-lg shadow-2xl flex items-center gap-2.5 translate-y-20 opacity-0 transition-all duration-300 z-50 pointer-events-none">
+    <div class="p-1 bg-emerald-500 rounded-full text-white" id="toast-icon-bg">
+        <i data-lucide="check" class="w-4 h-4" id="toast-icon"></i>
+    </div>
+    <p class="text-sm font-semibold" id="toast-message">Mesej Notifikasi</p>
+</div>
+
+<!-- Custom Confirmation Modal (Replaces browser confirm) -->
+<div id="confirm-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 hidden opacity-0 transition-opacity duration-300">
+    <div class="bg-slate-800 border border-slate-700 p-6 rounded-xl max-w-sm w-full shadow-2xl space-y-4 transform scale-95 transition-transform duration-300">
+        <div class="flex items-center gap-3 text-red-400">
+            <div class="p-2 bg-red-950 rounded-lg">
+                <i data-lucide="alert-triangle" class="w-6 h-6"></i>
+            </div>
+            <h3 class="font-extrabold text-lg text-white">Padam Semua Data?</h3>
+        </div>
+        <p class="text-xs text-slate-300 leading-relaxed">
+            Tindakan ini akan memadamkan keseluruhan maklumat teks yang ditaip, gambar-gambar yang dimuat naik, serta tetapan zoom yang telah dibuat.
+        </p>
+        <div class="flex items-center justify-end gap-3.5 pt-2">
+            <button onclick="closeResetModal()" class="text-xs font-bold text-slate-400 hover:text-white transition">Batal</button>
+            <button onclick="confirmResetAll()" class="px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded text-xs font-bold transition">Padam Semua</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Initialize Icons
+    lucide.createIcons();
+
+    // Field Config Mapping
+    const fields = [
+        'inSchool', 'inSession', 'inTitle', 'inDate', 'inPlace', 
+        'inTarget', 'inOrganiser', 'inObj', 'inTeacher', 'inBil', 
+        'inImpact', 'inConstraint', 'inRemarks'
+    ];
+
+    // Image adjustment settings storage (Zoom and Offset Coordinates per slot)
+    let imageSettings = {
+        pImg1: { zoom: 100, offsetY: 0 },
+        pImg2: { zoom: 100, offsetY: 0 },
+        pImg3: { zoom: 100, offsetY: 0 },
+        pImg4: { zoom: 100, offsetY: 0 },
+        pImg5: { zoom: 100, offsetY: 0 }
+    };
+
+    // --- ACCORDION CONTROLS ---
+    function toggleSection(secId) {
+        const target = document.getElementById(secId);
+        const icon = document.getElementById('icon-' + secId);
+        const allSections = ['sec-identity', 'sec-basic', 'sec-content', 'sec-optional', 'sec-photos', 'sec-validation', 'sec-backup'];
+        
+        allSections.forEach(id => {
+            const el = document.getElementById(id);
+            const currentIcon = document.getElementById('icon-' + id);
+            if (id === secId) {
+                const isHidden = el.classList.contains('hidden');
+                if (isHidden) {
+                    el.classList.remove('hidden');
+                    if (currentIcon) currentIcon.classList.add('rotate-180');
+                } else {
+                    el.classList.add('hidden');
+                    if (currentIcon) currentIcon.classList.remove('rotate-180');
+                }
+            } else {
+                el.classList.add('hidden');
+                if (currentIcon) currentIcon.classList.remove('rotate-180');
+            }
+        });
+    }
+
+    // --- REALTIME THEME COLOR SYSTEM ---
+    function updateColor(color) {
+        document.documentElement.style.setProperty('--theme-color', color);
+        document.getElementById('inColor').value = color;
+        localStorage.setItem('opr_themeColor', color);
+    }
+
+    // --- LIVE FORM SYNCHRONIZATION ---
+    function sync() {
+        fields.forEach(id => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            const val = el.value;
+            
+            // Handle Optional Field Sections
+            if (['inImpact', 'inConstraint', 'inRemarks'].includes(id)) {
+                const secId = id.replace('in', 'sec');
+                const secEl = document.getElementById(secId);
+                if (secEl) {
+                    secEl.style.display = val.trim() === "" ? "none" : "block";
+                }
+            }
+
+            // Sync with elements on A4 Page
+            const outId = id.replace('in', 'out');
+            const outEl = document.getElementById(outId);
+            
+            if (outEl) {
+                if (id === 'inObj') {
+                    // Split lines into structured bullet points
+                    const lines = val.split('\n').filter(l => l.trim() !== '');
+                    outEl.innerHTML = lines.length ? 
+                        `<ul class="list-disc pl-4 space-y-1">${lines.map(l => `<li>${l}</li>`).join('')}</ul>` : 
+                        `<ul class="list-disc pl-4 space-y-1"><li>Mencapai hasil pembelajaran yang optimum sepanjang aktiviti dijalankan.</li></ul>`;
+                } else if (id === 'inDate') {
+                    document.getElementById('outDateText').innerText = val || "Tarikh Program";
+                } else if (id === 'inPlace') {
+                    document.getElementById('outPlaceText').innerText = val || "Tempat Pelaksanaan";
+                } else {
+                    outEl.innerText = val || (['inImpact', 'inConstraint', 'inRemarks'].includes(id) ? "" : "...");
+                }
+            }
+            // Preserve into browser storage
+            localStorage.setItem('opr_' + id, val);
+        });
+    }
+
+    // --- PREVIEW SCALER (ZOOM PANEL) ---
+    function scalePreview(value) {
+        const wrapper = document.getElementById('a4-wrapper');
+        const zoomLabel = document.getElementById('zoomLabel');
+        wrapper.style.transform = `scale(${value / 100})`;
+        zoomLabel.innerText = value + '%';
+        localStorage.setItem('opr_previewZoom', value);
+    }
+
+    // --- ADVANCED IMAGE LOADING & CROPPING ---
+    function loadImg(e, imgId) {
+        if (e.target.files && e.target.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                setImageSrc(imgId, evt.target.result);
+                showToast("Gambar berjaya dimuat naik!");
+            };
+            reader.readAsDataURL(e.target.files[0]);
+        }
+    }
+
+    // Gunakan localstorage caching pintar untuk gambar
+    function setImageSrc(imgId, src) {
+        const img = document.getElementById(imgId);
+        const container = img.parentElement;
+        img.src = src;
+        container.classList.add('has-img');
+        
+        // Sembunyikan placeholder asal
+        const placeholder = container.querySelector('.logo-placeholder');
+        if (placeholder) placeholder.style.display = 'none';
+
+        try {
+            localStorage.setItem('opr_img_' + imgId, src);
+        } catch (e) {
+            console.warn("Kapasiti LocalStorage penuh untuk imej base64.", e);
+        }
+    }
+
+    function removeSlotImage(imgId) {
+        const img = document.getElementById(imgId);
+        const container = img.parentElement;
+        img.src = "";
+        container.classList.remove('has-img');
+
+        const placeholder = container.querySelector('.logo-placeholder');
+        if (placeholder) placeholder.style.display = 'block';
+
+        // Reset tetapan kedudukan gambar
+        if (imageSettings[imgId]) {
+            imageSettings[imgId].zoom = 100;
+            imageSettings[imgId].offsetY = 0;
+            applyImgStyles(imgId);
+        }
+
+        localStorage.removeItem('opr_img_' + imgId);
+        showToast("Gambar dibuang.");
+    }
+
+    // Fungsi laras zoom & paksi Y gambar dalam kotak kontena
+    function adjustImage(imgId, property, val, valLabelId) {
+        if (!imageSettings[imgId]) imageSettings[imgId] = { zoom: 100, offsetY: 0 };
+        
+        imageSettings[imgId][property] = parseInt(val);
+        document.getElementById(valLabelId).innerText = val;
+        
+        applyImgStyles(imgId);
+        localStorage.setItem('opr_settings_' + imgId, JSON.stringify(imageSettings[imgId]));
+    }
+
+    function applyImgStyles(imgId) {
+        const img = document.getElementById(imgId);
+        if (!img || !imageSettings[imgId]) return;
+        
+        const zoom = imageSettings[imgId].zoom;
+        const offsetY = imageSettings[imgId].offsetY;
+        
+        img.style.transform = `scale(${zoom / 100}) translateY(${offsetY}px)`;
+    }
+
+    // --- INTEGRATED TOAST & CONFIRMATION MODALS ---
+    function showToast(message, type = "success") {
+        const toast = document.getElementById('toast-notif');
+        const text = document.getElementById('toast-message');
+        const icon = document.getElementById('toast-icon');
+        const iconBg = document.getElementById('toast-icon-bg');
+
+        text.innerText = message;
+        if (type === "success") {
+            iconBg.className = "p-1 bg-emerald-500 rounded-full text-white";
+            icon.setAttribute('data-lucide', 'check');
+        } else {
+            iconBg.className = "p-1 bg-red-500 rounded-full text-white";
+            icon.setAttribute('data-lucide', 'alert-circle');
+        }
+        lucide.createIcons();
+
+        // Animate
+        toast.classList.remove('translate-y-20', 'opacity-0');
+        toast.classList.add('translate-y-0', 'opacity-100');
+        
+        setTimeout(() => {
+            toast.classList.add('translate-y-20', 'opacity-0');
+            toast.classList.remove('translate-y-0', 'opacity-100');
+        }, 3000);
+    }
+
+    function openResetModal() {
+        const modal = document.getElementById('confirm-modal');
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            modal.classList.remove('opacity-0');
+            modal.querySelector('div').classList.remove('scale-95');
+            modal.querySelector('div').classList.add('scale-100');
+        }, 10);
+    }
+
+    function closeResetModal() {
+        const modal = document.getElementById('confirm-modal');
+        modal.classList.add('opacity-0');
+        modal.querySelector('div').classList.remove('scale-100');
+        modal.querySelector('div').classList.add('scale-95');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+        }, 300);
+    }
+
+    function confirmResetAll() {
+        localStorage.clear();
+        closeResetModal();
+        showToast("Keseluruhan data telah diset semula.");
+        setTimeout(() => {
+            location.reload();
+        }, 1000);
+    }
+
+    // --- DRAG-TO-UPLOAD & DROPZONE LOGIC ---
+    document.querySelectorAll('.drop-zone').forEach(zone => {
+        const targetImgId = zone.getAttribute('data-target');
+
+        zone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            zone.classList.add('drag-over');
+        });
+
+        zone.addEventListener('dragleave', () => {
+            zone.classList.remove('drag-over');
+        });
+
+        zone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            zone.classList.remove('drag-over');
+
+            if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                const file = e.dataTransfer.files[0];
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = function(evt) {
+                        setImageSrc(targetImgId, evt.target.result);
+                        showToast("Foto dimuat naik menerusi Drag & Drop!");
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    showToast("Format fail ditolak. Sila hantar fail gambar sahaja.", "error");
+                }
+            }
+        });
+    });
+
+    // --- JSON TEMPLATE IMPORT / EXPORT SYSTEM ---
+    function exportTemplate() {
+        const exportObj = {
+            fields: {},
+            color: document.getElementById('inColor').value,
+            images: {},
+            imageSettings: imageSettings
+        };
+
+        fields.forEach(id => {
+            exportObj.fields[id] = document.getElementById(id).value;
+        });
+
+        ['pLogo1', 'pLogo2', 'pImg1', 'pImg2', 'pImg3', 'pImg4', 'pImg5'].forEach(imgId => {
+            const img = document.getElementById(imgId);
+            if (img && img.src.startsWith('data:image')) {
+                exportObj.images[imgId] = img.src;
+            }
+        });
+
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportObj));
+        const downloadAnchor = document.createElement('a');
+        
+        const cleanTitle = (document.getElementById('inTitle').value || "Laporan_OPR")
+            .substring(0, 20)
+            .replace(/[^a-zA-Z0-9]/g, "_");
+            
+        downloadAnchor.setAttribute("href", dataStr);
+        downloadAnchor.setAttribute("download", `${cleanTitle}_projek_opr.opr`);
+        document.body.appendChild(downloadAnchor);
+        downloadAnchor.click();
+        downloadAnchor.remove();
+        showToast("Fail projek OPR berjaya dieksport!");
+    }
+
+    function importTemplate(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+            try {
+                const imported = JSON.parse(evt.target.result);
+                
+                if (imported.color) {
+                    updateColor(imported.color);
+                }
+
+                if (imported.fields) {
+                    for (const id in imported.fields) {
+                        const el = document.getElementById(id);
+                        if (el) el.value = imported.fields[id];
+                    }
+                }
+
+                if (imported.imageSettings) {
+                    imageSettings = imported.imageSettings;
+                    Object.keys(imageSettings).forEach((imgId, idx) => {
+                        const n = idx - 1;
+                        if (n >= 1 && n <= 5) {
+                            const zSlider = document.querySelector(`#sec-photos input[oninput*="${imgId}"][oninput*="zoom"]`);
+                            const ySlider = document.querySelector(`#sec-photos input[oninput*="${imgId}"][oninput*="offsetY"]`);
+                            if (zSlider) zSlider.value = imageSettings[imgId].zoom;
+                            if (ySlider) ySlider.value = imageSettings[imgId].offsetY;
+                            
+                            const zLabel = document.getElementById(`valZoom${n}`);
+                            const yLabel = document.getElementById(`valY${n}`);
+                            if (zLabel) zLabel.innerText = imageSettings[imgId].zoom;
+                            if (yLabel) yLabel.innerText = imageSettings[imgId].offsetY;
+                        }
+                    });
+                }
+
+                ['pLogo1', 'pLogo2', 'pImg1', 'pImg2', 'pImg3', 'pImg4', 'pImg5'].forEach(imgId => {
+                    const container = document.getElementById(imgId).parentElement;
+                    container.classList.remove('has-img');
+                    document.getElementById(imgId).src = "";
+                });
+
+                if (imported.images) {
+                    for (const imgId in imported.images) {
+                        setImageSrc(imgId, imported.images[imgId]);
+                        applyImgStyles(imgId);
+                    }
+                }
+
+                sync();
+                showToast("Templat OPR berjaya dimuatkan!");
+            } catch (err) {
+                showToast("Ralat memuat naik templat fail projek.", "error");
+                console.error(err);
+            }
+        };
+        reader.readAsText(file);
+    }
+
+    // --- LOAD PRESET BEAUTIFUL DEMO DATA ---
+    function loadDemoData() {
+        const demoData = {
+            inSchool: "SEKOLAH KEBANGSAAN LEMBAH PERDANA",
+            inSession: "SESI AKADEMIK 2026/2027",
+            inTitle: "KEMPEN MEMBACA 1 DEKAD & PROGRAM DEKAD MEMBACA KEBANGSAAN",
+            inDate: "05 MEI 2026",
+            inPlace: "PERPUSTAKAAN SUTERA & DEWAN AL-FARABI",
+            inTarget: "Murid Tahap 2, Guru Penyelaras Media, Pengawas Pusat Sumber, & Ibu Bapa.",
+            inOrganiser: "Unit Pusat Sumber Sekolah (PSS) dengan kerjasama Panitia Bahasa Melayu.",
+            inObj: "Melahirkan murid celik maklumat yang mempunyai tabiat membaca sepanjang hayat.\nMendedahkan pelbagai bahan bacaan fizikal serta sistem digital interaktif terkini.\nMengiktiraf penglibatan murid aktif menerusi anugerah tokoh NILAM sekolah.",
+            inImpact: "Kehadiran murid ke PSS meningkat sebanyak 35% sepanjang minggu pelaksanaan.\nSebanyak 420 buah buku direkodkan dalam sistem NILAM sepanjang 5 hari.",
+            inConstraint: "Kekurangan ruang di perpustakaan pada waktu puncak dikurangkan dengan zon membaca luar.",
+            inRemarks: "Sokongan Persatuan Ibu Bapa dan Guru (PIBG) dalam menyumbang bahan bacaan sangat cemerlang.",
+            inTeacher: "PUAN NURALIAH BINTI MOHD SHAFIE",
+            inBil: "OPR PSS BIL. 1/2026"
+        };
+
+        for (const id in demoData) {
+            const el = document.getElementById(id);
+            if (el) el.value = demoData[id];
+        }
+
+        updateColor('#1e3a8a'); // Royal Blue
+
+        const placeholderImg = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='800' height='600' viewBox='0 0 800 600'><rect width='100%' height='100%' fill='%23e2e8f0'/><text x='50%25' y='50%25' font-family='Arial' font-size='24' fill='%2364748b' dominant-baseline='middle' text-anchor='middle'>CONTOH FOTO AKTIVITI</text></svg>";
+        const placeholderLogo = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'><rect width='100%' height='100%' fill='%23f1f5f9'/><circle cx='60' cy='60' r='40' fill='%23cbd5e1'/><text x='50%25' y='55%25' font-family='Arial' font-size='11' font-weight='bold' fill='%23475569' dominant-baseline='middle' text-anchor='middle'>LOGO</text></svg>";
+
+        setImageSrc('pLogo1', placeholderLogo);
+        setImageSrc('pLogo2', placeholderLogo);
+        setImageSrc('pImg1', placeholderImg);
+        setImageSrc('pImg2', placeholderImg);
+        setImageSrc('pImg3', placeholderImg);
+        setImageSrc('pImg4', placeholderImg);
+        setImageSrc('pImg5', placeholderImg);
+
+        Object.keys(imageSettings).forEach(imgId => {
+            imageSettings[imgId].zoom = 100;
+            imageSettings[imgId].offsetY = 0;
+            applyImgStyles(imgId);
+        });
+
+        sync();
+        showToast("Data contoh pameran berjaya diisi!");
+    }
+
+    // --- TRIGGER PRINT SYSTEM ---
+    function triggerPrint() {
+        const prevZoom = localStorage.getItem('opr_previewZoom') || "75";
+        const wrapper = document.getElementById('a4-wrapper');
+        
+        // Buang mod zoom buat sementara agar cetakan tidak mengecil/lari format
+        wrapper.style.transform = 'none';
+        
+        setTimeout(() => {
+            window.print();
+            // Kembalikan tetapan zoom asal pengguna
+            scalePreview(prevZoom);
+        }, 150);
+    }
+
+    // --- WINDOW LOAD & BOOTSTRAP RESTORE ---
+    window.onload = () => {
+        const prevZoom = localStorage.getItem('opr_previewZoom') || "75";
+        document.getElementById('pageZoom').value = prevZoom;
+        scalePreview(prevZoom);
+
+        const savedColor = localStorage.getItem('opr_themeColor');
+        if (savedColor) {
+            updateColor(savedColor);
+        }
+
+        fields.forEach(id => {
+            const saved = localStorage.getItem('opr_' + id);
+            if (saved) {
+                const el = document.getElementById(id);
+                if (el) el.value = saved;
+            }
+        });
+
+        ['pLogo1', 'pLogo2', 'pImg1', 'pImg2', 'pImg3', 'pImg4', 'pImg5'].forEach(imgId => {
+            const savedImg = localStorage.getItem('opr_img_' + imgId);
+            if (savedImg) {
+                setImageSrc(imgId, savedImg);
+            }
+
+            const savedSettings = localStorage.getItem('opr_settings_' + imgId);
+            if (savedSettings) {
+                try {
+                    imageSettings[imgId] = JSON.parse(savedSettings);
+                } catch (e) {
+                    console.error("Gagal memuat naik tetapan foto", e);
+                }
+            }
+            applyImgStyles(imgId);
+        });
+
+        sync();
+    };
+</script>
+
+</body>
+</html>
